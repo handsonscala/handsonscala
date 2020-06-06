@@ -1,0 +1,6 @@
+ def evaluate(expr: Expr, scope: Map[String, Value]): Value = expr match {
+   ...
+   case Expr.Call(expr, args) => ...
++  case Expr.Func(argNames, body) =>
++    Value.Func(args => evaluate(body, scope ++ argNames.zip(args)))
+ }
