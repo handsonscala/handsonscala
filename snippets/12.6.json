@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "number": 1347,
+    "state": "open",
+    "title": "Found a bug",
+    "body": "I'm having a problem with this.",
+    "user": { "login": "octocat", "id": 1 },
+    "labels": [],
+    "assignee": { "login": "octocat", "id": 1 },
+    "assignees": [],
+    "milestone": { ... },
+    "locked": true
+  }
+]

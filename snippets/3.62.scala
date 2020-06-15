@@ -1,0 +1,3 @@
+class Msg(val id: Int, val parent: Option[Int], val txt: String)
+
+def printMessages(messages: Array[Msg]): Unit = ...
