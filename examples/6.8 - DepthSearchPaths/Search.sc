@@ -5,7 +5,7 @@ def depthSearchPaths[T](start: T, graph: Map[T, Seq[T]]): Map[T, List[T]] = {
   while (queue.nonEmpty) {
     val (current, path, pathLength) = queue.removeLast()
     for {
-      next <- graph(current)
+      next <- graph.getOrElse(current, Nil)
       if !seen.contains(next) && !pathLengths.get(next).exists(_ <= pathLength + 1)
     } {
       val newPath = next :: path
