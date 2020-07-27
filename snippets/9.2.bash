@@ -1,0 +1,2 @@
+$ amm Blog.sc
+Hello!
