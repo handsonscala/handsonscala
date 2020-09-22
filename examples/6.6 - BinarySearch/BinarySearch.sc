@@ -3,7 +3,7 @@ def binarySearch[T: Ordering](sorted: IndexedSeq[T], target: T): Boolean = {
     // If the sequence you are trying to search has no items, the item cannot be found
     if (start == end) false
     else {
-      val middle = (start + end) / 2
+      val middle = start + (end - start) / 2
       // Otherwise, take the item at the middle of the sequence
       val middleItem = sorted(middle)
       // and compare it to the item you are looking for
