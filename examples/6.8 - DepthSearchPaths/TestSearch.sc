@@ -28,3 +28,19 @@ assert(
     )
   ) == List("a", "c")
 )
+
+assert(
+  pprint.log(
+    shortestPath(
+      start = "a",
+      dest = "e",
+      graph = Map(
+        "a" -> Seq("b", "c"),
+        "b" -> Seq("e"),
+        "c" -> Seq("d"),
+        "d" -> Seq("e"),
+        "e" -> Seq()
+      )
+    )
+  ) == List("a", "b", "e")
+)
