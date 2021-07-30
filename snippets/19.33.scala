@@ -4,7 +4,7 @@
     case Number(2) => "two";    case Number(3) => "three"
     case Number(4) => "four";   case Number(5) => "five"
     case Number(6) => "six";    case Number(7) => "seven"
-    case Number(8) => "eight";  case Number(9) => "seven"
+    case Number(8) => "eight";  case Number(9) => "nine"
   }
 
 @ stringify(t)
