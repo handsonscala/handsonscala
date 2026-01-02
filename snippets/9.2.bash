@@ -1,0 +1,2 @@
+$ ./mill Blog.scala
+Hello!

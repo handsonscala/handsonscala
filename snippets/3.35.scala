@@ -1,0 +1,3 @@
+> for i <- Range.inclusive(0, 4) do println(i) // Range.inclusive(0, 4) includes 4
+...
+4

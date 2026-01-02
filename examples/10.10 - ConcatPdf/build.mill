@@ -1,0 +1,121 @@
+//| mvnDeps:
+//| - com.lihaoyi::scalatags:0.13.1
+//| - org.commonmark:commonmark:0.26.0
+//| - org.apache.pdfbox:pdfbox:2.0.18
+import mill.*
+import mill.api.BuildCtx
+import scalatags.Text.all.*
+
+def mdNameToHtml(name: String) =
+  name.replace(" ", "-").toLowerCase + ".html"
+
+val postInfo = BuildCtx.watchValue:
+  os.list(BuildCtx.workspaceRoot / "post")
+    .map: p =>
+      val s"$prefix - $suffix.md" = p.last
+      (prefix, suffix, p)
+    .sortBy(_(0).toInt)
+
+def bootstrap = Task:
+  os.write(
+    Task.dest / "bootstrap.css",
+    requests.get(
+      "https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.css"
+    )
+  )
+  PathRef(Task.dest / "bootstrap.css")
+
+def renderMarkdown(s: String) =
+  val parser = org.commonmark.parser.Parser.builder().build()
+  val document = parser.parse(s)
+  val renderer = org.commonmark.renderer.html.HtmlRenderer.builder().build()
+  renderer.render(document)
+
+def renderHtmlPage(dest: os.Path, bootstrapUrl: String, contents: Frag*) =
+  os.write(
+    dest,
+    doctype("html")(
+      html(head(link(rel := "stylesheet", href := bootstrapUrl)), body(contents))
+    )
+  )
+  PathRef(dest)
+
+def puppeteer = Task:
+  os.call(cmd = ("npm", "install", "puppeteer@24.24.1"), cwd = Task.dest, stderr = os.Pipe)
+  PathRef(Task.dest)
+
+def pdfize = Task.Source("pdfize.js")
+
+object post extends Cross[PostModule](postInfo.map(_(0)))
+trait PostModule extends Cross.Module[String]:
+  def number = crossValue
+  val Some((_, suffix, markdownPath)) = postInfo.find(_(0) == number)
+  def path = Task.Source(markdownPath)
+  def preview = Task:
+    renderMarkdown(os.read.lines(path().path).takeWhile(_.nonEmpty).mkString("\n"))
+
+  def render = Task:
+    renderHtmlPage(
+      Task.dest / mdNameToHtml(suffix),
+      "../bootstrap.css",
+      h1(a(href := "../index.html")("Blog"), " / ", suffix),
+      raw(renderMarkdown(os.read(path().path)))
+    )
+
+  def pdf = Task:
+    for p <- os.list(puppeteer().path) do os.copy.over(p, Task.dest / p.last)
+    os.copy(bootstrap().path, Task.dest / "bootstrap.css")
+    os.makeDir(Task.dest / "post")
+    val htmlPath = Task.dest / "post" / render().path.last
+    os.copy(render().path, htmlPath)
+
+    val localPdfize = Task.dest / pdfize().path.last
+
+    os.copy.over(pdfize().path, localPdfize)
+    val s"$baseName.html" = htmlPath.last
+    val pdfPath = Task.dest / s"$baseName.pdf"
+    os.call(cmd = ("node", localPdfize, htmlPath, pdfPath), cwd = Task.dest)
+    PathRef(pdfPath)
+
+def links = Task.Input{ postInfo.map(_(1)) }
+val posts = Task.sequence(postInfo.map(_(0)).map(post(_).render))
+val previews = Task.sequence(postInfo.map(_(0)).map(post(_).preview))
+
+def index = Task:
+  renderHtmlPage(
+    Task.dest / "index.html",
+    "bootstrap.css",
+    h1("Blog"),
+    for (suffix, preview) <- links().zip(previews())
+    yield frag(
+      h2(a(href := ("post/" + mdNameToHtml(suffix)))(suffix)),
+      raw(preview) // include markdown-generated HTML "raw" without HTML-escaping
+    )
+  )
+
+def dist = Task :
+  for post <- posts() do
+    os.copy(post.path, Task.dest / "post" / post.path.last, createFolders = true)
+
+  os.copy(index().path, Task.dest / "index.html")
+  os.copy(bootstrap().path, Task.dest / "bootstrap.css")
+  PathRef(Task.dest)
+
+val pdfFiles = Task.sequence(postInfo.map(_(0)).map(post(_).pdf))
+
+def pdfs = Task:
+  for pdf <- pdfFiles() do os.copy.into(pdf.path, Task.dest)
+  PathRef(Task.dest)
+
+def combinedPdf = Task:
+  val outPath = Task.dest / "combined.pdf"
+  val merger = org.apache.pdfbox.multipdf.PDFMergerUtility()
+  for pdf <- pdfFiles() do merger.addSource(pdf.path.toIO)
+  val out = os.write.outputStream(outPath)
+  try
+    merger.setDestinationStream(out)
+    merger.mergeDocuments()
+  finally
+    out.close()
+  PathRef(outPath)
+

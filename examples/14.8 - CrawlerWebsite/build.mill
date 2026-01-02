@@ -1,0 +1,15 @@
+package build
+import mill.*, scalalib.*
+
+object app extends ScalaModule:
+  def scalaVersion = "3.8.0-RC4"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::cask:0.11.3",
+    mvn"com.lihaoyi::requests:0.9.0"
+  )
+  object test extends ScalaTests with TestModule.Utest:
+
+    def mvnDeps = Seq(
+      mvn"com.lihaoyi::utest:0.9.4"
+    )

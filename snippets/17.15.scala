@@ -1,0 +1,9 @@
+   def main(src0: String, dest0: String): Unit =
+     ...
+     def callAgent[T: upickle.Reader](rpc: Rpc): () => T = ...
+-    for srcSubPath <- os.walk(src) do ...
++    val subPaths = os.walk(src).map(_.subRelativeTo(src))
++    def pipelineCalls[T: upickle.Reader](rpcFor: os.SubPath => Option[Rpc]) =
++      val buffer = collection.mutable.Buffer.empty[(os.RelPath, () => T)]
++      for p <- subPaths; rpc <- rpcFor(p) do buffer.addOne((p, callAgent[T](rpc)))
++      buffer.map((k, v) => (k, v())).toMap

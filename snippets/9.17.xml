@@ -1,0 +1,15 @@
+$ cat out/post/my-first-post.html
+<!DOCTYPE html><html><body>
+<h1>Blog / My First Post</h1>
+<p>Sometimes you want numbered lists:</p>
+<ol>
+<li>One</li>
+<li>Two</li>
+<li>Three</li>
+</ol>
+<p>Sometimes you want bullet points:</p>
+<ul>
+<li>Start a line with a star</li>
+<li>Profit!</li>
+</ul>
+</body></html>

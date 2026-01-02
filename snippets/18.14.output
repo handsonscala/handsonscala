@@ -1,0 +1,13 @@
+SyncActor handling: ChangedPath(hello)
+Agent handling: StatPath(hello)
+SyncActor handling: AgentResponse(StatInfo(hello,None))
+
+SyncActor handling: ChangedPath(hello/world.txt)
+Agent handling: StatPath(hello/world.txt)
+SyncActor handling: AgentResponse(StatInfo(hello/world.txt,None))
+Agent handling: WriteOver([B@7995092a,hello/world.txt)
+
+SyncActor handling: ChangedPath(moo)
+Agent handling: StatPath(moo)
+SyncActor handling: AgentResponse(StatInfo(moo,None))
+Agent handling: WriteOver([B@76908cc0,moo)

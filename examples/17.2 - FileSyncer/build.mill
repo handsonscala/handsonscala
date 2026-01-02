@@ -1,0 +1,22 @@
+import mill.*, scalalib.*
+
+trait SyncModule extends ScalaModule:
+  def scalaVersion = "3.8.0-RC4"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::upickle:4.4.2",
+    mvn"com.lihaoyi::os-lib:0.11.6"
+  )
+
+object shared extends SyncModule
+
+object sync extends SyncModule:
+  def moduleDeps = Seq(shared)
+  def resources = Task:
+    os.copy(agent.assembly().path, Task.dest / "agent.jar")
+    super.resources() ++ Seq(PathRef(Task.dest))
+
+  object test extends ScalaTests with TestModule.Utest: // Test Suite
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.4")
+
+object agent extends SyncModule:
+  def moduleDeps = Seq(shared)

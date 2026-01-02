@@ -1,0 +1,6 @@
+fizzbuzz: IndexedSeq[String] = Vector(
+  "1",
+  "2",
+  "Fizz",
+  "4",
+  "Buzz"...

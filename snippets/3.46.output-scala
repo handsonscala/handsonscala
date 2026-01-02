@@ -1,0 +1,5 @@
+flattened: Array[String] = Array(
+  "hello1",
+  "world1",
+  "hello2"
+)

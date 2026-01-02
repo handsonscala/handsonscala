@@ -1,0 +1,71 @@
+//| mvnDeps:
+//| - com.lihaoyi::scalatags:0.13.1
+//| - org.commonmark:commonmark:0.26.0
+import scalatags.Text.all.*
+
+def main(targetGitRepo: String = "") =
+  val postInfo = os
+    .list(os.pwd / "post")
+    .map: p =>
+      val s"$prefix - $suffix.md" = p.last
+      val publishDate = java.time.LocalDate.ofInstant(
+        java.time.Instant.ofEpochMilli(os.mtime(p)),
+        java.time.ZoneOffset.UTC
+      )
+      (prefix, suffix, p, publishDate)
+    .sortBy(_(0).toInt)
+
+  def mdNameToHtml(name: String) =
+    name.replace(" ", "-").toLowerCase + ".html"
+
+  val bootstrapCss = link(
+    rel := "stylesheet",
+    href := "https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.css"
+  )
+
+  os.remove.all(os.pwd / "out")
+  os.makeDir.all(os.pwd / "out/post")
+
+  for (_, suffix, path, publishDate) <- postInfo do
+    val parser = org.commonmark.parser.Parser.builder().build()
+    val document = parser.parse(os.read(path))
+    val renderer = org.commonmark.renderer.html.HtmlRenderer.builder().build()
+    val output = renderer.render(document)
+
+    os.write(
+      os.pwd / "out/post" / mdNameToHtml(suffix),
+      doctype("html")(
+        html(
+          head(bootstrapCss),
+          body(
+            h1(a("Blog", href := "../index.html"), " / ", suffix),
+            raw(output),
+            p(i("Written on " + publishDate))
+          )
+        )
+      )
+    )
+  end for
+
+  os.write(
+    os.pwd / "out/index.html",
+    doctype("html")(
+      html(
+        head(bootstrapCss),
+        body(
+          h1("Blog"),
+          for (_, suffix, _, publishDate) <- postInfo
+          yield frag(
+            h2(a(href := ("post/" + mdNameToHtml(suffix)))(suffix)),
+            p(i("Written on " + publishDate))
+          )
+        )
+      )
+    )
+  )
+
+  if targetGitRepo != "" then
+    os.call(cmd = ("git", "init"), cwd = os.pwd / "out")
+    os.call(cmd = ("git", "add", "-A"), cwd = os.pwd / "out")
+    os.call(cmd = ("git", "commit", "-am", "."), cwd = os.pwd / "out")
+    os.call(cmd = ("git", "push", targetGitRepo, "head", "-f"), cwd = os.pwd / "out")

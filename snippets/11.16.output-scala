@@ -1,0 +1,16 @@
+articles: Buffer[(String, String, String, String, Buffer[(String, String)])] = ArrayBuffer(
+  (
+    "/en-US/docs/Web/API/AbortController",
+    "AbortController",
+    "AbortController",
+    "The AbortController interface represents a controller object that allows...",
+    ArrayBuffer(
+      ("AbortController()", "Creates a new AbortController object instance."),
+      (
+        "AbortController.signal Read only",
+        "Returns an AbortSignal object instance, which can be used to ..."
+      ),
+      ...
+    )
+  ),
+  ...
